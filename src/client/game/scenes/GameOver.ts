@@ -13,7 +13,7 @@ export class GameOver extends Scene {
   create() {
     // Configure camera
     this.camera = this.cameras.main;
-    this.camera.setBackgroundColor(0xff0000);
+    this.camera.setBackgroundColor(0x734be3);
 
     // Background – create once, full-screen
     this.background = this.add.image(0, 0, 'background').setOrigin(0).setAlpha(0.5);

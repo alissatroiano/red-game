@@ -27,7 +27,7 @@ export class MainMenu extends Scene {
     this.scale.on('resize', () => this.refreshLayout());
 
     this.input.once('pointerdown', () => {
-      this.scene.start('Game');
+      this.scene.start('GameScene');
     });
   }
 
@@ -59,12 +59,12 @@ export class MainMenu extends Scene {
     const baseFontSize = 38;
     if (!this.title) {
       this.title = this.add
-        .text(0, 0, 'Main Menu', {
+        .text(0, 0, 'Play', {
           fontFamily: 'Arial Black',
           fontSize: `${baseFontSize}px`,
           color: '#ffffff',
-          stroke: '#000000',
-          strokeThickness: 8,
+          stroke: '#6666ff',
+          strokeThickness: 3,
           align: 'center',
         })
         .setOrigin(0.5);
