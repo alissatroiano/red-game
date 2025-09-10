@@ -1,7 +1,7 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
   "name": "redpordy",
-  "post": {
+ "post": {
     "dir": "dist/client",
     "entrypoints": {
       "default": {
@@ -9,15 +9,15 @@
       }
     }
   },
-  "server": {
+ "server": {
     "dir": "dist/server",
-    "entry": "src/server/server.ts"
+    "entry": "index.cjs"
   },
   "menu": {
     "items": [
       {
         "label": "Create a new post",
-        "description": "Spelling Bee Game",
+        "description": "Word Game",
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-create"

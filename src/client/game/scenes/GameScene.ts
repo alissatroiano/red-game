@@ -13,8 +13,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        // Preload any assets like background images or letter graphics
-        // For simplicity, we'll use text
+         this.load.image('background', 'assets/bg.png');
     }
 
     async create() {
@@ -23,13 +22,27 @@ export default class GameScene extends Phaser.Scene {
         const outerLetters = ['a', 'c', 'l', 'e', 's', 'o'];
         
         try {
-            const response = await fetch('../../server/dictionary.json');
+            const response = await fetch('../../dictionary.ts');
             const dictionary = await response.json();
             this.gameLogic = new SpellingBeeGame(centerLetter, outerLetters, dictionary);
         } catch (error) {
             // Fallback dictionary if server fails
-            const fallbackDictionary = ["collapse", "palace", "pale", "pole", "scope", "cap"];
-            this.gameLogic = new SpellingBeeGame(centerLetter, outerLetters, fallbackDictionary);
+const fallbackDictionary = [
+      "able", "about", "above", "across", "after", "again", "against", "also", "always", "another",
+      "back", "because", "been", "before", "being", "below", "between", "both", "came", "come",
+      "could", "does", "each", "even", "every", "first", "from", "give", "good", "great",
+      "hand", "have", "here", "home", "house", "just", "keep", "know", "large", "last",
+      "left", "life", "like", "line", "live", "long", "look", "made", "make", "many",
+      "most", "move", "much", "must", "name", "need", "never", "next", "night", "only",
+      "open", "other", "over", "part", "place", "point", "right", "said", "same", "seem",
+      "show", "side", "small", "some", "such", "take", "than", "that", "them", "then",
+      "there", "these", "they", "thing", "think", "this", "those", "three", "time", "turn",
+      "under", "until", "very", "want", "water", "well", "went", "were", "what", "when",
+      "where", "which", "while", "will", "with", "word", "work", "world", "would", "write",
+      "year", "your", "collapse", "palace", "pale", "pole", "scope", "cape", "pace", "place",
+      "space", "lapse", "clasp", "scale", "peace", "lease", "please", "escape", "special"
+    ];            
+    this.gameLogic = new SpellingBeeGame(centerLetter, outerLetters, fallbackDictionary);
         }
         
         this.setupUI();
