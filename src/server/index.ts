@@ -1,130 +1,59 @@
 import express from 'express';
-import { InitResponse, IncrementResponse, DecrementResponse } from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
-import { createPost } from './core/post';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
-
-// Middleware for JSON body parsing
 app.use(express.json());
-// Middleware for URL-encoded body parsing
 app.use(express.urlencoded({ extended: true }));
-// Middleware for plain text body parsing
 app.use(express.text());
 
 const router = express.Router();
 
-router.get<{ postId: string }, InitResponse | { status: string; message: string }>(
-  '/api/init',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
+// --- Redis dictionary key ---
+const REDIS_DICTIONARY_KEY = 'english_words';
 
-    if (!postId) {
-      console.error('API Init Error: postId not found in devvit context');
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required but missing from context',
-      });
-      return;
-    }
-
-    try {
-      const count = await redis.get('count');
-      res.json({
-        type: 'init',
-        postId: postId,
-        count: count ? parseInt(count) : 0,
-      });
-    } catch (error) {
-      console.error(`API Init Error for post ${postId}:`, error);
-      let errorMessage = 'Unknown error during initialization';
-      if (error instanceof Error) {
-        errorMessage = `Initialization failed: ${error.message}`;
-      }
-      res.status(400).json({ status: 'error', message: errorMessage });
-    }
+// --- Load dictionary into Redis if not already loaded ---
+async function loadDictionaryToRedis() {
+  const exists = await redis.exists(REDIS_DICTIONARY_KEY);
+  if (!exists) {
+    console.log('Loading dictionary into Redis...');
+    const filePath = path.resolve('./words.txt'); // adjust path if needed
+    const text = fs.readFileSync(filePath, 'utf-8');
+    const words = text.split(/\r?\n/).filter(Boolean);
+    
+    // Use Redis SET for fast membership checking
+    await redis.sAdd(REDIS_DICTIONARY_KEY, ...words);
+    console.log(`Dictionary loaded into Redis with ${words.length} words.`);
+  } else {
+    console.log('Dictionary already in Redis.');
   }
-);
+}
 
-router.post<{ postId: string }, IncrementResponse | { status: string; message: string }, unknown>(
-  '/api/increment',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required',
-      });
-      return;
-    }
-
-    res.json({
-      count: await redis.incrBy('count', 1),
-      postId,
-      type: 'increment',
-    });
+// --- Endpoint to check a word ---
+router.get('/api/check-word', async (req, res) => {
+  const word = (req.query.word as string)?.toLowerCase();
+  if (!word) {
+    return res.status(400).json({ status: 'error', message: 'word is required' });
   }
-);
 
-router.post<{ postId: string }, DecrementResponse | { status: string; message: string }, unknown>(
-  '/api/decrement',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required',
-      });
-      return;
-    }
-
-    res.json({
-      count: await redis.incrBy('count', -1),
-      postId,
-      type: 'decrement',
-    });
-  }
-);
-
-router.post('/internal/on-app-install', async (_req, res): Promise<void> => {
   try {
-    const post = await createPost();
+    await loadDictionaryToRedis(); // ensures dictionary is loaded
 
-    res.json({
-      status: 'success',
-      message: `Post created in subreddit ${context.subredditName} with id ${post.id}`,
-    });
+    const isValid = await redis.sIsMember(REDIS_DICTIONARY_KEY, word);
+    res.json({ valid: Boolean(isValid) });
   } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    res.status(400).json({
-      status: 'error',
-      message: 'Failed to create post',
-    });
+    console.error(`Word check failed: ${error}`);
+    res.status(500).json({ status: 'error', message: 'Dictionary lookup failed' });
   }
 });
 
-router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
-  try {
-    const post = await createPost();
+// --- Other demo routes (init, increment, decrement) if needed ---
+// router.get('/api/init', ...)
 
-    res.json({
-      navigateTo: `https://reddit.com/r/${context.subredditName}/comments/${post.id}`,
-    });
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    res.status(400).json({
-      status: 'error',
-      message: 'Failed to create post',
-    });
-  }
-});
-
-// Use router middleware
 app.use(router);
 
-// Get port from environment variable with fallback
 const port = process.env.WEBBIT_PORT || 3000;
-
 const server = createServer(app);
 server.on('error', (err) => console.error(`server error; ${err.stack}`));
-server.listen(port, () => console.log(`http://localhost:${port}`));
+server.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
