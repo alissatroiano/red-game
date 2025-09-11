@@ -1,130 +1,91 @@
 import express from 'express';
-import { InitResponse, IncrementResponse, DecrementResponse } from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
-import { createPost } from './core/post';
 
 const app = express();
-
-// Middleware for JSON body parsing
 app.use(express.json());
-// Middleware for URL-encoded body parsing
 app.use(express.urlencoded({ extended: true }));
-// Middleware for plain text body parsing
 app.use(express.text());
 
 const router = express.Router();
 
-router.get<{ postId: string }, InitResponse | { status: string; message: string }>(
-  '/api/init',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
+// --- Load dictionary into Redis ---
+async function loadDictionary() {
+  const exists = await redis.exists('english_dictionary');
+  if (!exists) {
+    console.log('Loading dictionary into Redis...');
+    const res = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+    const text = await res.text();
+    const words = text.split(/\r?\n/).map(w => w.toLowerCase());
 
-    if (!postId) {
-      console.error('API Init Error: postId not found in devvit context');
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required but missing from context',
-      });
-      return;
+    const hashObj: Record<string, string> = {};
+    for (const word of words) {
+      hashObj[word] = '1';
     }
 
-    try {
-      const count = await redis.get('count');
-      res.json({
-        type: 'init',
-        postId: postId,
-        count: count ? parseInt(count) : 0,
-      });
-    } catch (error) {
-      console.error(`API Init Error for post ${postId}:`, error);
-      let errorMessage = 'Unknown error during initialization';
-      if (error instanceof Error) {
-        errorMessage = `Initialization failed: ${error.message}`;
-      }
-      res.status(400).json({ status: 'error', message: errorMessage });
-    }
+    await redis.hSet('english_dictionary', hashObj);
+    console.log(`Dictionary loaded with ${words.length} words.`);
+  } else {
+    console.log('Dictionary already loaded in Redis.');
   }
-);
+}
 
-router.post<{ postId: string }, IncrementResponse | { status: string; message: string }, unknown>(
-  '/api/increment',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required',
-      });
-      return;
-    }
-
-    res.json({
-      count: await redis.incrBy('count', 1),
-      postId,
-      type: 'increment',
-    });
+// --- Check a word endpoint ---
+router.get('/api/check-word', async (req, res) => {
+  const word = (req.query.word as string)?.toLowerCase();
+  if (!word) {
+    res.status(400).json({ status: 'error', message: 'word is required' });
+    return;
   }
-);
 
-router.post<{ postId: string }, DecrementResponse | { status: string; message: string }, unknown>(
-  '/api/decrement',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required',
-      });
-      return;
-    }
-
-    res.json({
-      count: await redis.incrBy('count', -1),
-      postId,
-      type: 'decrement',
-    });
-  }
-);
-
-router.post('/internal/on-app-install', async (_req, res): Promise<void> => {
   try {
-    const post = await createPost();
-
-    res.json({
-      status: 'success',
-      message: `Post created in subreddit ${context.subredditName} with id ${post.id}`,
-    });
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    res.status(400).json({
-      status: 'error',
-      message: 'Failed to create post',
-    });
+    await loadDictionary();
+    const exists = await redis.hExists('english_dictionary', word);
+    console.log(`Word check: "${word}" => ${exists}`);
+    res.json({ valid: exists });
+  } catch (err) {
+    console.error('Word check failed:', err);
+    res.status(500).json({ status: 'error', message: 'Dictionary lookup failed' });
   }
 });
 
-router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
-  try {
-    const post = await createPost();
+// --- Track guessed words per post (optional) ---
+router.post('/api/submit-word', async (req, res) => {
+  const { word } = req.body as { word: string };
+  const { postId } = context;
 
-    res.json({
-      navigateTo: `https://reddit.com/r/${context.subredditName}/comments/${post.id}`,
-    });
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    res.status(400).json({
-      status: 'error',
-      message: 'Failed to create post',
-    });
+  if (!postId || !word) {
+    res.status(400).json({ status: 'error', message: 'postId and word are required' });
+    return;
+  }
+
+  try {
+    await loadDictionary();
+
+    const isValid = await redis.hExists('english_dictionary', word.toLowerCase());
+    if (!isValid) {
+      return res.json({ valid: false, message: 'Word not recognized.' });
+    }
+
+    // Store guessed word per post in Redis Set
+    const postKey = `post:${postId}:guessed_words`;
+    const alreadyGuessed = await redis.sIsMember(postKey, word.toLowerCase());
+    if (alreadyGuessed) {
+      return res.json({ valid: true, message: 'Word already guessed.', alreadyGuessed: true });
+    }
+
+    await redis.sAdd(postKey, word.toLowerCase());
+    const guessedWords = await redis.smembers(postKey);
+
+    res.json({ valid: true, message: 'Word accepted!', guessedWords });
+  } catch (err) {
+    console.error('Submit word failed:', err);
+    res.status(500).json({ status: 'error', message: 'Word submission failed' });
   }
 });
 
-// Use router middleware
+
 app.use(router);
-
-// Get port from environment variable with fallback
 const port = process.env.WEBBIT_PORT || 3000;
-
 const server = createServer(app);
 server.on('error', (err) => console.error(`server error; ${err.stack}`));
-server.listen(port, () => console.log(`http://localhost:${port}`));
+server.listen(port, () => console.log(`Server running at http://localhost:${port}`));
