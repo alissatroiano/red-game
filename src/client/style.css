@@ -15,7 +15,7 @@ body {
   height: 100%;
 }
 
-.letters-outer,
-.letter-inner {
-  margin: 0px auto;
+canvas {
+  display: block;
+  margin: 0 auto;
 }
