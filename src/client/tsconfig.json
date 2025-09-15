@@ -17,7 +17,7 @@
     "strictPropertyInitialization": false
   },
   // https://github.com/Microsoft/TypeScript/issues/25636
-  "include": ["**/*", "**/*.json"],
+  "include": ["**/*", "**/*.json", "../server/dictionary.ts"],
   "exclude": ["**/*.test.ts"],
   "references": [{ "path": "../shared" }]
 }

@@ -1,4 +1,4 @@
-interface GameState {
+export interface GameState {
   centerLetter: string;
   outerLetters: string[];
   foundWords: Set<string>;

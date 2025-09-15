@@ -9,11 +9,6 @@ export class MainMenu extends Scene {
     super('MainMenu');
   }
 
-  /**
-   * Reset cached GameObject references every time the scene starts.
-   * The same Scene instance is reused by Phaser, so we must ensure
-   * stale (destroyed) objects are cleared out when the scene restarts.
-   */
   init(): void {
     this.background = null;
     this.logo = null;
@@ -31,10 +26,6 @@ export class MainMenu extends Scene {
     });
   }
 
-  /**
-   * Positions and (lightly) scales all UI elements based on the current game size.
-   * Call this from create() and from any resize events.
-   */
   private refreshLayout(): void {
     const { width, height } = this.scale;
 
