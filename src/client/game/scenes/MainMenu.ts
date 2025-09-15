@@ -50,17 +50,16 @@ export class MainMenu extends Scene {
     const baseFontSize = 38;
     if (!this.title) {
       this.title = this.add
-        .text(0, 0, 'Play', {
+        .text(0, 0, 'PLAY', {
           fontFamily: 'Arial Black',
           fontSize: `${baseFontSize}px`,
           color: '#ffffff',
           stroke: '#6666ff',
-          strokeThickness: 3,
           align: 'center',
         })
-        .setOrigin(0.5);
+        .setOrigin(0.25);
     }
-    this.title!.setPosition(width / 2, height * 0.6);
+    this.title!.setPosition(width / 2, height * 0.75);
     this.title!.setScale(scaleFactor);
   }
 }
