@@ -1,13 +1,16 @@
-import Phaser from 'phaser';
+import { Scene } from 'phaser';
+import * as Phaser from 'phaser';
 import { SpellingBeeGame, GameValidationResult } from './SpellingBeeGame';
 import type { GetDictionaryResponse } from '../../../shared/types/api';
 
-export default class GameScene extends Phaser.Scene {
+export class GameScene extends Scene {
   private gameLogic: SpellingBeeGame;
   private typedWord: string = '';
   private textInput: Phaser.GameObjects.Text;
   private scoreText: Phaser.GameObjects.Text;
   private messageText: Phaser.GameObjects.Text;
+  camera: Phaser.Cameras.Scene2D.Camera;
+  background: Phaser.GameObjects.Image;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -19,9 +22,33 @@ export default class GameScene extends Phaser.Scene {
   }
   
   async create() {
-    // Load dictionary from server
+    this.camera = this.cameras.main;
+    this.camera.setBackgroundColor(0x222222);
+    this.background = this.add.image(512, 384, 'background').setAlpha(0.25);
     const centerLetter = 'p';
     const outerLetters = ['a', 'c', 'l', 'e', 's', 'o'];
+    this.updateLayout(this.scale.width, this.scale.height);
+      this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
+        const { width, height } = gameSize;
+        this.updateLayout(width, height);
+      });
+
+      updateLayout(width: number, height: number) {
+    // Resize camera viewport to avoid black bars
+    this.cameras.resize(width, height);
+
+    // Center and scale background image to cover screen
+    if (this.background) {
+      this.background.setPosition(width / 2, height / 2);
+      if (this.background.width && this.background.height) {
+        const scale = Math.max(width / this.background.width, height / this.background.height);
+        this.background.setScale(scale);
+      }
+    }
+
+    // Calculate a scale factor relative to a 1024 × 768 reference resolution.
+    // We only shrink on smaller screens – never enlarge above 1×.
+    const scaleFactor = Math.min(Math.min(width / 1024, height / 768), 1);
 
     try {
       const response = await fetch('/api/get-dictionary');
@@ -272778,7 +272805,9 @@ export default class GameScene extends Phaser.Scene {
           outerLetterPositions[index]![0]!,
           outerLetterPositions[index]![1]!,
           letter.toUpperCase(),
-          { fontSize: '32px' }
+          { 
+            fontSize: '32px',
+           fontFamily: 'Arial Black' }
         )
         .setOrigin(0.5);
     });

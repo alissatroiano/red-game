@@ -1,3 +1,9 @@
+export type InitResponse = {
+  type: 'init';
+  postId: string;
+  count: number;
+};
+
 export type GetDictionaryResponse = {
   type: 'dictionary';
   words: string[];
@@ -12,6 +18,18 @@ export interface GameData {
   updateScore: (points: number) => void;
   score: number;
 }
+
+export type IncrementResponse = {
+  type: 'increment';
+  postId: string;
+  count: number;
+};
+
+export type DecrementResponse = {
+  type: 'decrement';
+  postId: string;
+  count: number;
+};
 
 // API Response types
 type Response<T> = { status: 'error'; message: string } | ({ status: 'success' } & T);
