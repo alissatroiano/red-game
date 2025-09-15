@@ -108,6 +108,32 @@ export class SpellingBeeGame {
   public getGameState(): GameState {
     return this.gameState;
   }
+
+  public get centerLetter(): string {
+    return this.gameState.centerLetter;
+  }
+
+  public get outerLetters(): string[] {
+    return this.gameState.outerLetters;
+  }
+
+  public getScore(): number {
+    return this.gameState.currentScore;
+  }
+
+  public validateWord(word: string): { isValid: boolean; points?: number; message?: string } {
+    const result = this.submitWord(word);
+    if (result.type === 'success') {
+      return { isValid: true, points: result.points };
+    }
+    return { isValid: false, message: result.message };
+  }
+
+  public shuffleOuterLetters(): string[] {
+    const shuffled = [...this.gameState.outerLetters].sort(() => Math.random() - 0.5);
+    this.gameState.outerLetters = shuffled;
+    return shuffled;
+  }
 }
 
 // Result type for submitted words
