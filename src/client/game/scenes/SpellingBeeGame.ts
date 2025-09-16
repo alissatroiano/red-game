@@ -86,10 +86,10 @@ export class SpellingBeeGame {
   private calculatePoints(word: string): number {
     // 4-letter words are 1 point
     if (word.length === 4) {
-      return 1;
+      return 3;
     }
     // Longer words get 1 point per letter
-    let points = word.length;
+    let points = word.length + 3;
 
     // Bonus for pangrams (using all 7 letters)
     const allLetters = new Set([...this.gameState.outerLetters, this.gameState.centerLetter]);
