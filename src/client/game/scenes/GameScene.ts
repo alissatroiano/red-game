@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SpellingBeeGame, GameValidationResult } from './SpellingBeeGame';
+import { SpellingBeeGame } from './SpellingBeeGame';
 import type { GetDictionaryResponse } from '../../../shared/types/api';
 
 export default class GameScene extends Phaser.Scene {
@@ -272766,6 +272766,7 @@ export default class GameScene extends Phaser.Scene {
       this.gameLogic = new SpellingBeeGame(centerLetter, outerLetters, fallbackDictionary);
     }
 
+    await this.loadDailyProgress();
     this.setupUI();
     this.setupInput();
   }
@@ -272831,22 +272832,30 @@ export default class GameScene extends Phaser.Scene {
 
     // Action buttons
     const buttonY = height * 0.8;
-    const deleteBtn = this.add.text(centerX - 100, buttonY, 'DELETE', {
-      fontSize: '20px',
+    const deleteBtn = this.add.text(centerX - 120, buttonY, 'DELETE', {
+      fontSize: '18px',
       color: '#fff',
       backgroundColor: '#e74c3c',
-      padding: { x: 15, y: 8 }
+      padding: { x: 12, y: 6 }
     }).setOrigin(0.5).setInteractive();
 
-    const enterBtn = this.add.text(centerX + 100, buttonY, 'ENTER', {
-      fontSize: '20px',
+    const enterBtn = this.add.text(centerX, buttonY, 'ENTER', {
+      fontSize: '18px',
       color: '#fff',
       backgroundColor: '#27ae60',
-      padding: { x: 15, y: 8 }
+      padding: { x: 12, y: 6 }
+    }).setOrigin(0.5).setInteractive();
+
+    const giveUpBtn = this.add.text(centerX + 120, buttonY, 'Done', {
+      fontSize: '18px',
+      color: '#fff',
+      backgroundColor: '#9b59b6',
+      padding: { x: 12, y: 6 }
     }).setOrigin(0.5).setInteractive();
 
     deleteBtn.on('pointerdown', () => this.deleteLetter());
     enterBtn.on('pointerdown', () => this.submitWord());
+    giveUpBtn.on('pointerdown', () => this.endGame());
   }
 
   private setupVirtualKeyboard() {
@@ -272929,6 +272938,7 @@ export default class GameScene extends Phaser.Scene {
     if (result.isValid) {
       this.showMessage(`+${result.points} points!`);
       this.scoreText.setText(`Score: ${this.gameLogic.getScore()}`);
+      this.saveDailyProgress();
     } else {
       this.showMessage(result.message || 'Invalid word');
     }
@@ -272944,5 +272954,52 @@ export default class GameScene extends Phaser.Scene {
   private showMessage(text: string) {
     this.messageText.setText(text);
     this.time.delayedCall(2000, () => this.messageText.setText(''));
+  }
+
+  private async loadDailyProgress() {
+    try {
+      const response = await fetch('/api/daily-game');
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      if (data.gameState) {
+        this.gameLogic.loadDailyGameState(data.gameState);
+      }
+    } catch (error) {
+      console.error('Failed to load daily progress:', error);
+    }
+  }
+
+  private async saveDailyProgress() {
+    try {
+      const gameState = this.gameLogic.getDailyGameState('current');
+      await fetch('/api/daily-game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gameState)
+      });
+    } catch (error) {
+      console.error('Failed to save daily progress:', error);
+    }
+  }
+
+  private async saveScore(score: number) {
+    try {
+      const response = await fetch('/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score })
+      });
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      
+      console.log('Score saved successfully:', score);
+    } catch (error) {
+      console.error('Failed to save score:', error);
+    }
+  }
+
+  private pauseGame() {
+    this.saveDailyProgress();
+    this.scene.start('MainMenu');
   }
 }

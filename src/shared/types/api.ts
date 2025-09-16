@@ -19,17 +19,44 @@ export interface GameData {
   score: number;
 }
 
-export type IncrementResponse = {
-  type: 'increment';
+export type UserScore = {
+  type: 'score';
   postId: string;
   count: number;
 };
 
-export type DecrementResponse = {
-  type: 'decrement';
+export type saveScore ={
+  type: 'score';
   postId: string;
   count: number;
 };
+
+export type DailyGameState = {
+  type: 'dailyState';
+  postId: string;
+  date: string;
+  score: number;
+  foundWords: string[];
+  isCompleted: boolean;
+};
+
+export type LoadDailyGameResponse = {
+  type: 'loadDaily';
+  gameState: DailyGameState | null;
+};
+
+export type SaveDailyGameResponse = {
+  type: 'saveDaily';
+  success: boolean;
+};
+
+export type GameValidationResult =
+  | { type: 'success'; points: number; message: string }
+  | { type: 'already_found'; message: string }
+  | { type: 'no_center_letter'; message: string }
+  | { type: 'too_short'; message: string }
+  | { type: 'not_in_dictionary'; message: string }
+  | { type: 'wrong_letters'; message: string };
 
 // API Response types
 type Response<T> = { status: 'error'; message: string } | ({ status: 'success' } & T);

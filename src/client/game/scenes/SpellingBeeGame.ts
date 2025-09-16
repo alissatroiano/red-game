@@ -1,3 +1,6 @@
+
+import { UserScore, DailyGameState } from '../../../shared/types/api';
+
 export interface GameState {
   centerLetter: string;
   outerLetters: string[];
@@ -134,6 +137,30 @@ export class SpellingBeeGame {
     this.gameState.outerLetters = shuffled;
     return shuffled;
   }
+
+  public getUserScore(postId: string): UserScore {
+    return {
+      type: 'score',
+      postId: postId,
+      count: this.gameState.currentScore
+    };
+  }
+
+  public getDailyGameState(postId: string): DailyGameState {
+    return {
+      type: 'dailyState',
+      postId,
+      date: new Date().toISOString().split('T')[0],
+      score: this.gameState.currentScore,
+      foundWords: Array.from(this.gameState.foundWords),
+      isCompleted: false
+    };
+  }
+
+  public loadDailyGameState(gameState: DailyGameState): void {
+    this.gameState.currentScore = gameState.score;
+    this.gameState.foundWords = new Set(gameState.foundWords);
+  }
 }
 
 // Result type for submitted words
@@ -144,3 +171,5 @@ export type GameValidationResult =
   | { type: 'too_short'; message: string }
   | { type: 'not_in_dictionary'; message: string }
   | { type: 'wrong_letters'; message: string };
+
+

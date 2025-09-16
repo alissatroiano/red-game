@@ -1,5 +1,5 @@
 import express from 'express';
-import { InitResponse, IncrementResponse } from '../shared/types/api';
+import { InitResponse, saveScore, DailyGameState, LoadDailyGameResponse, SaveDailyGameResponse } from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
 
@@ -82,6 +82,77 @@ router.post<{ postId: string }, DecrementResponse | { status: string; message: s
       count: await redis.incrBy('count', -1),
       postId,
       type: 'decrement',
+    });
+  }
+);
+
+router.post<{ postId: string }, saveScore | { status: string; message: string }, { score: number }>(
+  '/api/score',
+  async (req, res): Promise<void> => {
+    const { postId } = context;
+    if (!postId) {
+      res.status(400).json({
+        status: 'error',
+        message: 'postId is required',
+      });
+      return;
+    }
+
+    const { score } = req.body;
+    if (typeof score !== 'number') {
+      res.status(400).json({
+        status: 'error',
+        message: 'score must be a number',
+      });
+      return;
+    }
+
+    await redis.set(`score:${postId}`, score.toString());
+    
+    res.json({
+      type: 'score',
+      postId,
+      count: score,
+    });
+  }
+);
+
+router.get<{ postId: string }, LoadDailyGameResponse | { status: string; message: string }>(
+  '/api/daily-game',
+  async (_req, res): Promise<void> => {
+    const { postId } = context;
+    if (!postId) {
+      res.status(400).json({ status: 'error', message: 'postId is required' });
+      return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const gameStateStr = await redis.get(`daily:${postId}:${today}`);
+    
+    res.json({
+      type: 'loadDaily',
+      gameState: gameStateStr ? JSON.parse(gameStateStr) : null,
+    });
+  }
+);
+
+router.post<{ postId: string }, SaveDailyGameResponse | { status: string; message: string }, DailyGameState>(
+  '/api/daily-game',
+  async (req, res): Promise<void> => {
+    const { postId } = context;
+    if (!postId) {
+      res.status(400).json({ status: 'error', message: 'postId is required' });
+      return;
+    }
+
+    const gameState = req.body;
+    const today = new Date().toISOString().split('T')[0];
+    
+    await redis.set(`daily:${postId}:${today}`, JSON.stringify(gameState));
+    
+    res.json({
+      type: 'saveDaily',
+      success: true,
     });
   }
 );

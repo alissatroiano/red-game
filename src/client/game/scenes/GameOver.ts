@@ -5,9 +5,18 @@ export class GameOver extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
   gameover_text: Phaser.GameObjects.Text;
+  score_text: Phaser.GameObjects.Text;
+  private finalScore: number = 0;
 
   constructor() {
     super('GameOver');
+  }
+
+  init(data: { score?: number }) {
+    this.finalScore = data.score || 0;
+    const UserScore = { type: 'score', postId: 'spelling-bee', count: this.finalScore };
+    console.log('Final Score:', this.finalScore);
+    console.log('UserScore Object:', UserScore);
   }
 
   create() {
@@ -26,6 +35,16 @@ export class GameOver extends Scene {
         color: '#ffffff',
         stroke: '#000000',
         strokeThickness: 8,
+        align: 'center',
+      })
+      .setOrigin(0.5);
+
+    // Score text
+    this.score_text = this.add
+      .text(0, 0, `Final Score: ${this.finalScore}`, {
+        fontFamily: 'Arial',
+        fontSize: '32px',
+        color: '#4aff7a',
         align: 'center',
       })
       .setOrigin(0.5);
@@ -59,8 +78,14 @@ export class GameOver extends Scene {
 
     // Centre and scale the game-over text
     if (this.gameover_text) {
-      this.gameover_text.setPosition(width / 2, height / 2);
+      this.gameover_text.setPosition(width / 2, height * 0.4);
       this.gameover_text.setScale(scaleFactor);
+    }
+
+    // Centre and scale the score text
+    if (this.score_text) {
+      this.score_text.setPosition(width / 2, height * 0.6);
+      this.score_text.setScale(scaleFactor);
     }
   }
 }
