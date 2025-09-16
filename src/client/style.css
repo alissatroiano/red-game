@@ -58,16 +58,16 @@ button#directions {
 
 .modal-content {
   background-color: #0e0024e2;
-  padding: 30px;
+  padding: 20px;
   border-radius: 10px;
   width: 90%;
-  max-width: 400px;
+  max-width: 350px;
   position: relative;
 }
 
 .modal-header {
   border-bottom: 1px solid #444;
-  padding-bottom: 12px;
+  padding-top: 20px;
 }
 
 .modal-header h2 {
@@ -77,20 +77,27 @@ button#directions {
   letter-spacing: 2px;
   color: #80dbfabb;
   text-align: center;
-  margin: 20px auto;
-  padding: 0px 20px;
+  margin-top: 20px;
 }
 
 p.modal-text {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1rem;
   font-weight: 300;
-  line-height: 1.5;
+  line-height: 1.25;
   color: #ededed;
-  line-height: 1.5;
-  margin: 20px 20px;
+  margin: 20px 15px;
   text-align: center;
-  padding-bottom: 13px;
+  padding-bottom: 8px;
+}
+
+p.note {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #ff98ec;
+  font-style: italic;
+  text-align: center;
 }
 
  h3.rules {
@@ -98,17 +105,18 @@ p.modal-text {
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-size: 1.3rem;
+  font-size: 1.253rem;
   color: #fffb03b0;
   text-align: start;
-  margin: 20px auto;
+  margin: 10px auto;
 }
 
 ul.unordered-list {
   list-style-type: disc;
-  padding-left: 40px;
-  margin: 0 20px;
-  line-height: 1.85;
+  padding-left: 30px;
+  margin: 0px auto;
+  font-size: 14px;
+  line-height: 1.65;
   color: #ddd;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 200;
