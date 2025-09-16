@@ -272846,7 +272846,7 @@ export default class GameScene extends Phaser.Scene {
       padding: { x: 12, y: 6 }
     }).setOrigin(0.5).setInteractive();
 
-    const giveUpBtn = this.add.text(centerX + 120, buttonY, 'Done', {
+    const pauseBtn = this.add.text(centerX + 120, buttonY, 'Pause', {
       fontSize: '18px',
       color: '#fff',
       backgroundColor: '#9b59b6',
@@ -272855,7 +272855,7 @@ export default class GameScene extends Phaser.Scene {
 
     deleteBtn.on('pointerdown', () => this.deleteLetter());
     enterBtn.on('pointerdown', () => this.submitWord());
-    giveUpBtn.on('pointerdown', () => this.endGame());
+    pauseBtn.on('pointerdown', () => this.pauseGame());
   }
 
   private setupVirtualKeyboard() {
@@ -272964,6 +272964,7 @@ export default class GameScene extends Phaser.Scene {
       const data = await response.json();
       if (data.gameState) {
         this.gameLogic.loadDailyGameState(data.gameState);
+        this.scoreText.setText(`Score: ${this.gameLogic.getScore()}`);
       }
     } catch (error) {
       console.error('Failed to load daily progress:', error);
@@ -272980,21 +272981,6 @@ export default class GameScene extends Phaser.Scene {
       });
     } catch (error) {
       console.error('Failed to save daily progress:', error);
-    }
-  }
-
-  private async saveScore(score: number) {
-    try {
-      const response = await fetch('/api/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score })
-      });
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      
-      console.log('Score saved successfully:', score);
-    } catch (error) {
-      console.error('Failed to save score:', error);
     }
   }
 
