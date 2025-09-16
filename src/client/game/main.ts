@@ -24,4 +24,22 @@ const StartGame = (parent: string) => {
   return new Game({ ...config, parent });
 };
 
+export const showDirections = () => {
+  const modal = document.getElementById('modal');
+  modal?.classList.toggle('hidden');
+}
+
+// Initialize modal event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const directionsBtn = document.getElementById('directions');
+  const modal = document.getElementById('modal');
+  const closeBtn = document.querySelector('.close');
+
+  directionsBtn?.addEventListener('click', showDirections);
+  closeBtn?.addEventListener('click', showDirections);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) showDirections();
+  });
+});
+
 export default StartGame;
