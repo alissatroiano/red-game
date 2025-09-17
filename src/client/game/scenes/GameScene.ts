@@ -8,8 +8,9 @@ export default class GameScene extends Phaser.Scene {
   private textInput: Phaser.GameObjects.Text;
   private scoreText: Phaser.GameObjects.Text;
   private messageText: Phaser.GameObjects.Text;
+  private wordsGuessedText: Phaser.GameObjects.Text;
   private letterButtons: Phaser.GameObjects.Text[] = [];
-  private keyboardContainer: Phaser.GameObjects.Container;
+
 
   constructor() {
     super({ key: 'GameScene' });
@@ -272777,10 +272778,12 @@ export default class GameScene extends Phaser.Scene {
     const centerX = isSmallScreen ? width * 0.5 : width / 2;
 
     // Score
-    this.scoreText = this.add.text(20, 20, 'Score: 0', {
+    this.scoreText = this.add.text(20, 20, ' ', {
       fontSize: '24px',
       color: '#4aff7a'
     });
+
+
 
     // Current word input
     this.textInput = this.add.text(centerX, height * 0.15, '', {
@@ -272796,7 +272799,7 @@ export default class GameScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Letter hexagon with increased spacing
-    const hexRadius = isSmallScreen ? 80 : 120;
+    const hexRadius = isSmallScreen ? 100 : 120;
     const centerY = height * 0.5;
 
     // Center letter
@@ -272820,15 +272823,15 @@ export default class GameScene extends Phaser.Scene {
         fontSize: '36px',
         color: '#000',
         backgroundColor: '#ecf0f1',
-        padding: { x: 15, y: 10 }
+        padding: { x: 15, y: 10 },
+        margin: { x: 10, y: 20 },
       }).setOrigin(0.5).setInteractive();
 
       letterButton.on('pointerdown', () => this.addLetter(this.gameLogic.outerLetters[i]));
       this.letterButtons.push(letterButton);
     }
 
-    // Virtual keyboard for mobile
-    this.setupVirtualKeyboard();
+
 
     // Action buttons
     const buttonY = height * 0.8;
@@ -272856,32 +272859,16 @@ export default class GameScene extends Phaser.Scene {
     deleteBtn.on('pointerdown', () => this.deleteLetter());
     enterBtn.on('pointerdown', () => this.submitWord());
     pauseBtn.on('pointerdown', () => this.pauseGame());
+
+    // Found words - positioned below action buttons
+    this.wordsGuessedText = this.add.text(centerX, buttonY + 50, ' ', {
+      fontSize: '12px',
+      color: '#fff59fff',
+      wordWrap: { width: width - 40 }
+    }).setOrigin(0.5, 0);
   }
 
-  private setupVirtualKeyboard() {
-    const { width, height } = this.cameras.main;
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (!isMobile) return;
 
-    const keyboardY = height * 0.9;
-    const allLetters = [this.gameLogic.centerLetter, ...this.gameLogic.outerLetters];
-    
-    this.keyboardContainer = this.add.container(0, 0);
-    
-    allLetters.forEach((letter, index) => {
-      const x = (width / (allLetters.length + 1)) * (index + 1);
-      const key = this.add.text(x, keyboardY, letter.toUpperCase(), {
-        fontSize: '24px',
-        color: '#000',
-        backgroundColor: '#bdc3c7',
-        padding: { x: 12, y: 8 }
-      }).setOrigin(0.5).setInteractive();
-
-      key.on('pointerdown', () => this.addLetter(letter));
-      this.keyboardContainer.add(key);
-    });
-  }
 
   private setupInput() {
     // Physical keyboard input
@@ -272938,6 +272925,7 @@ export default class GameScene extends Phaser.Scene {
     if (result.isValid) {
       this.showMessage(`+${result.points} points!`);
       this.scoreText.setText(`Score: ${this.gameLogic.getScore()}`);
+      this.updateFoundWordsDisplay();
       this.saveDailyProgress();
     } else {
       this.showMessage(result.message || 'Invalid word');
@@ -272965,6 +272953,7 @@ export default class GameScene extends Phaser.Scene {
       if (data.gameState) {
         this.gameLogic.loadDailyGameState(data.gameState);
         this.scoreText.setText(`Score: ${this.gameLogic.getScore()}`);
+        this.updateFoundWordsDisplay();
       }
     } catch (error) {
       console.error('Failed to load daily progress:', error);
@@ -272982,6 +272971,11 @@ export default class GameScene extends Phaser.Scene {
     } catch (error) {
       console.error('Failed to save daily progress:', error);
     }
+  }
+
+  private updateFoundWordsDisplay() {
+    const words = this.gameLogic.getFoundWords();
+    this.wordsGuessedText.setText(`${words.join(', ')}`);
   }
 
   private pauseGame() {

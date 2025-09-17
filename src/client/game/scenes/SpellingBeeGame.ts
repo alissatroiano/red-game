@@ -87,12 +87,16 @@ export class SpellingBeeGame {
   }
 
   private calculatePoints(word: string): number {
-    // 4-letter words are 1 point
-    if (word.length === 4) {
-      return 3;
+    // Base points equal to word length
+    let points = word.length;
+
+    // Bonus points for rare letters
+    const rareLetters = new Set(['v', 'w', 'x', 'y', 'z']);
+    for (const letter of word) {
+      if (rareLetters.has(letter)) {
+        points += 2;
+      }
     }
-    // Longer words get 1 point per letter
-    let points = word.length + 3;
 
     // Bonus for pangrams (using all 7 letters)
     const allLetters = new Set([...this.gameState.outerLetters, this.gameState.centerLetter]);
@@ -124,6 +128,10 @@ export class SpellingBeeGame {
     return this.gameState.currentScore;
   }
 
+  public getFoundWords(): string[] {
+    return Array.from(this.gameState.foundWords).sort();
+  }
+
   public validateWord(word: string): { isValid: boolean; points?: number; message?: string } {
     const result = this.submitWord(word);
     if (result.type === 'success') {
@@ -150,7 +158,7 @@ export class SpellingBeeGame {
     return {
       type: 'dailyState',
       postId,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0]!,
       score: this.gameState.currentScore,
       foundWords: Array.from(this.gameState.foundWords),
       isCompleted: false

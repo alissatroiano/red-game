@@ -46,15 +46,19 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
   }
 );
 
+router.get('/api/user', async (_req, res): Promise<void> => {
+  const { userId } = context;
+  res.json({ userId: userId || 'anonymous' });
+});
 
 router.post<{ postId: string }, saveScore | { status: string; message: string }, { score: number }>(
   '/api/score',
   async (req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
+    const { postId, userId } = context;
+    if (!postId || !userId) {
       res.status(400).json({
         status: 'error',
-        message: 'postId is required',
+        message: 'postId and userId are required',
       });
       return;
     }
@@ -68,7 +72,7 @@ router.post<{ postId: string }, saveScore | { status: string; message: string },
       return;
     }
 
-    await redis.set(`score:${postId}`, score.toString());
+    await redis.set(`score:${postId}:${userId}`, score.toString());
     
     res.json({
       type: 'score',
@@ -81,14 +85,14 @@ router.post<{ postId: string }, saveScore | { status: string; message: string },
 router.get<{ postId: string }, LoadDailyGameResponse | { status: string; message: string }>(
   '/api/daily-game',
   async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({ status: 'error', message: 'postId is required' });
+    const { postId, userId } = context;
+    if (!postId || !userId) {
+      res.status(400).json({ status: 'error', message: 'postId and userId are required' });
       return;
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const gameStateStr = await redis.get(`daily:${postId}:${today}`);
+    const gameStateStr = await redis.get(`daily:${postId}:${userId}:${today}`);
     
     res.json({
       type: 'loadDaily',
@@ -100,16 +104,16 @@ router.get<{ postId: string }, LoadDailyGameResponse | { status: string; message
 router.post<{ postId: string }, SaveDailyGameResponse | { status: string; message: string }, DailyGameState>(
   '/api/daily-game',
   async (req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({ status: 'error', message: 'postId is required' });
+    const { postId, userId } = context;
+    if (!postId || !userId) {
+      res.status(400).json({ status: 'error', message: 'postId and userId are required' });
       return;
     }
 
     const gameState = req.body;
     const today = new Date().toISOString().split('T')[0];
     
-    await redis.set(`daily:${postId}:${today}`, JSON.stringify(gameState));
+    await redis.set(`daily:${postId}:${userId}:${today}`, JSON.stringify(gameState));
     
     res.json({
       type: 'saveDaily',

@@ -28,6 +28,10 @@ div.how-to-play {
   background: transparent;
 }
 
+button {
+  border-radius: 50%;
+}
+
 button#directions {
   width: 40px;
   height: 40px;

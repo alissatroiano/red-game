@@ -4,6 +4,7 @@ export class MainMenu extends Scene {
   background: GameObjects.Image | null = null;
   logo: GameObjects.Image | null = null;
   title: GameObjects.Text | null = null;
+  userText: GameObjects.Text | null = null;
 
   constructor() {
     super('MainMenu');
@@ -13,9 +14,11 @@ export class MainMenu extends Scene {
     this.background = null;
     this.logo = null;
     this.title = null;
+    this.userText = null;
   }
 
-  create() {
+  async create() {
+    await this.loadUserInfo();
     this.refreshLayout();
 
     // Re-calculate positions whenever the game canvas is resized (e.g. orientation change).
@@ -24,6 +27,21 @@ export class MainMenu extends Scene {
     this.input.once('pointerdown', () => {
       this.scene.start('GameScene');
     });
+  }
+
+  private async loadUserInfo() {
+    try {
+      const response = await fetch('/api/user');
+      const data = await response.json();
+      if (!this.userText) {
+        this.userText = this.add.text(20, 20, `User: ${data.userId}`, {
+          fontSize: '16px',
+          color: '#ffffff'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load user info:', error);
+    }
   }
 
   private refreshLayout(): void {
@@ -61,5 +79,10 @@ export class MainMenu extends Scene {
     }
     this.title!.setPosition(width / 2, height * 0.75);
     this.title!.setScale(scaleFactor);
+
+    // User text positioning
+    if (this.userText) {
+      this.userText.setPosition(20, 20);
+    }
   }
 }
