@@ -28,7 +28,9 @@ Devvit.addMenuItem({
       await createPost();
       context.ui.showToast('Game created successfully!');
     } catch (e) {
-      context.ui.showToast('Failed to create post: ' + (e instanceof Error ? e.message : 'Unknown error'));
+      context.ui.showToast(
+        'Failed to create post: ' + (e instanceof Error ? e.message : 'Unknown error')
+      );
     }
   },
 });

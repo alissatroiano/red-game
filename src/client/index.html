@@ -1,45 +1,41 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Vocable</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
-  <title>Vocable</title>
-</head>
-
-<body>
-  <div id="app">
-    <div class="how-to-play">
-      <button class="cursor-pointer" id="directions">
-        ?
-      </button>
-    </div>
-
-    <!-- Modal -->
-    <div id="modal" class="modal hidden">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <div class="modal-header">
-          <h2>About</h2>
-        </div>
-        <p class="modal-text">Every day, a new set of letters will appear. Make as many words as you can to score high
-        </p>
-        <ul class="unordered-list">
-          <h3 class="rules">RULES</h3>
-          <li>Each word <strong>MUST</strong> be at least 4 letters long</li>
-          <li>The letter in the center <strong>MUST</strong> be in every word you guess</li>
-          <li>You can use each letter more than once</li>
-          <li>Proper nouns, hyphenated words, and slang are not allowed</li>
-          <li>You <strong>CANNOT</strong> guess the same word twice</li>
-        </ul>
-        <p class="note"><strong>Note: </strong> Long, complex words score higher.</p>
+  <body>
+    <div id="app">
+      <div class="how-to-play" id="directions-container">
       </div>
+
+      <!-- Modal -->
+      <div id="modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <div class="modal-header">
+            <h2>About</h2>
+          </div>
+          <p class="modal-text">
+            Every day, a new set of letters will appear. Make as many words as you can to score high
+          </p>
+          <ul class="unordered-list">
+            <h3 class="rules">RULES</h3>
+            <li>Each word <strong>MUST</strong> be at least 4 letters long</li>
+            <li>The letter in the center <strong>MUST</strong> be in every word you guess</li>
+            <li>You can use each letter more than once</li>
+            <li>Proper nouns, hyphenated words, and slang are not allowed</li>
+            <li>You <strong>CANNOT</strong> guess the same word twice</li>
+          </ul>
+          <p class="note"><strong>Note: </strong> Long, complex words score higher.</p>
+        </div>
+      </div>
+      <div id="game-container"></div>
     </div>
-    <div id="game-container"></div>
-  </div>
 
-  <script type="module" src="main.ts"></script>
-</body>
-
+    <script type="module" src="main.ts"></script>
+  </body>
 </html>

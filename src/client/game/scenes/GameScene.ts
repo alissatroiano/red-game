@@ -11,7 +11,6 @@ export default class GameScene extends Phaser.Scene {
   private wordsGuessedText: Phaser.GameObjects.Text;
   private letterButtons: Phaser.GameObjects.Text[] = [];
 
-
   constructor() {
     super({ key: 'GameScene' });
   }
@@ -33,7 +32,7 @@ export default class GameScene extends Phaser.Scene {
     const centerIndex = Math.floor(seededRandom(seed) * alphabet.length);
     const centerLetter = alphabet[centerIndex] || 'a';
 
-    let outerLetters: string[] = [];
+    const outerLetters: string[] = [];
     let attempts = 0;
     while (outerLetters.length < 6 && attempts < 100) {
       attempts++;
@@ -49,7 +48,7 @@ export default class GameScene extends Phaser.Scene {
       const data: GetDictionaryResponse = await response.json();
       this.gameLogic = new SpellingBeeGame(centerLetter, outerLetters, data.words);
     } catch (error) {
-      const fallbackDictionary = [
+        const fallbackDictionary = [
   "aahed",
   "aahing",
   "aahs",
@@ -272770,6 +272769,7 @@ export default class GameScene extends Phaser.Scene {
     await this.loadDailyProgress();
     this.setupUI();
     this.setupInput();
+    this.updateFoundWordsDisplay();
   }
 
   private setupUI() {
@@ -272780,35 +272780,40 @@ export default class GameScene extends Phaser.Scene {
     // Score
     this.scoreText = this.add.text(20, 20, ' ', {
       fontSize: '24px',
-      color: '#4aff7a'
+      color: '#4aff7a',
     });
 
-
-
     // Current word input
-    this.textInput = this.add.text(centerX, height * 0.15, '', {
-      fontSize: '32px',
-      color: '#d54aff',
-      padding: { x: 10, y: 8 }
-    }).setOrigin(0.5);
+    this.textInput = this.add
+      .text(centerX, height * 0.15, '', {
+        fontSize: '32px',
+        color: '#d54aff',
+        padding: { x: 10, y: 8 },
+      })
+      .setOrigin(0.5);
 
     // Message area
-    this.messageText = this.add.text(centerX, height * 0.25, '', {
-      fontSize: '18px',
-      color: '#f3491aff'
-    }).setOrigin(0.5);
+    this.messageText = this.add
+      .text(centerX, height * 0.25, '', {
+        fontSize: '18px',
+        color: '#f3491aff',
+      })
+      .setOrigin(0.5);
 
     // Letter hexagon with increased spacing
     const hexRadius = isSmallScreen ? 100 : 120;
     const centerY = height * 0.5;
 
     // Center letter
-    const centerButton = this.add.text(centerX, centerY, this.gameLogic.centerLetter.toUpperCase(), {
-      fontSize: '48px',
-      color: '#fff',
-      backgroundColor: '#f39c12',
-      padding: { x: 20, y: 15 }
-    }).setOrigin(0.5).setInteractive();
+    const centerButton = this.add
+      .text(centerX, centerY, this.gameLogic.centerLetter.toUpperCase(), {
+        fontSize: '48px',
+        color: '#fff',
+        backgroundColor: '#f39c12',
+        padding: { x: 20, y: 15 },
+      })
+      .setOrigin(0.5)
+      .setInteractive();
 
     centerButton.on('pointerdown', () => this.addLetter(this.gameLogic.centerLetter));
     this.letterButtons.push(centerButton);
@@ -272818,63 +272823,77 @@ export default class GameScene extends Phaser.Scene {
       const angle = (i * Math.PI) / 3;
       const x = centerX + Math.cos(angle) * hexRadius;
       const y = centerY + Math.sin(angle) * hexRadius;
+      const letter = this.gameLogic.outerLetters[i];
 
-      const letterButton = this.add.text(x, y, this.gameLogic.outerLetters[i].toUpperCase(), {
-        fontSize: '36px',
-        color: '#000',
-        backgroundColor: '#ecf0f1',
-        padding: { x: 15, y: 10 },
-        margin: { x: 10, y: 20 },
-      }).setOrigin(0.5).setInteractive();
+      if (!letter) continue;
 
-      letterButton.on('pointerdown', () => this.addLetter(this.gameLogic.outerLetters[i]));
+      const letterButton = this.add
+        .text(x, y, letter.toUpperCase(), {
+          fontSize: '36px',
+          color: '#000',
+          backgroundColor: '#ecf0f1',
+          padding: { x: 15, y: 10 },
+        })
+        .setOrigin(0.5)
+        .setInteractive();
+
+      letterButton.on('pointerdown', () => this.addLetter(letter));
       this.letterButtons.push(letterButton);
     }
 
-
-
     // Action buttons
     const buttonY = height * 0.8;
-    const deleteBtn = this.add.text(centerX - 120, buttonY, 'DELETE', {
-      fontSize: '18px',
-      color: '#fff',
-      backgroundColor: '#e74c3c',
-      padding: { x: 12, y: 6 }
-    }).setOrigin(0.5).setInteractive();
+    const deleteBtn = this.add
+      .text(centerX - 120, buttonY, 'DELETE', {
+        fontSize: '18px',
+        color: '#fff',
+        backgroundColor: '#e74c3c',
+        padding: { x: 12, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setInteractive();
 
-    const enterBtn = this.add.text(centerX, buttonY, 'ENTER', {
-      fontSize: '18px',
-      color: '#fff',
-      backgroundColor: '#27ae60',
-      padding: { x: 12, y: 6 }
-    }).setOrigin(0.5).setInteractive();
+    const enterBtn = this.add
+      .text(centerX, buttonY, 'ENTER', {
+        fontSize: '18px',
+        color: '#fff',
+        backgroundColor: '#27ae60',
+        padding: { x: 12, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setInteractive();
 
-    const pauseBtn = this.add.text(centerX + 120, buttonY, 'Pause', {
-      fontSize: '18px',
-      color: '#fff',
-      backgroundColor: '#9b59b6',
-      padding: { x: 12, y: 6 }
-    }).setOrigin(0.5).setInteractive();
+    const pauseBtn = this.add
+      .text(centerX + 120, buttonY, 'Break', {
+        fontSize: '18px',
+        color: '#fff',
+        backgroundColor: '#9b59b6',
+        padding: { x: 12, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setInteractive();
 
     deleteBtn.on('pointerdown', () => this.deleteLetter());
     enterBtn.on('pointerdown', () => this.submitWord());
     pauseBtn.on('pointerdown', () => this.pauseGame());
 
+    this.scoreText.setText(`Score: ${this.gameLogic.getScore()}`);
+
     // Found words - positioned below action buttons
-    this.wordsGuessedText = this.add.text(centerX, buttonY + 50, ' ', {
-      fontSize: '12px',
-      color: '#fff59fff',
-      wordWrap: { width: width - 40 }
-    }).setOrigin(0.5, 0);
+    this.wordsGuessedText = this.add
+      .text(centerX, buttonY + 50, ' ', {
+        fontSize: '12px',
+        color: '#fff59fff',
+        wordWrap: { width: width - 40 },
+      })
+      .setOrigin(0.5, 0);
   }
-
-
 
   private setupInput() {
     // Physical keyboard input
     this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
-      
+
       if (key === 'backspace') {
         this.deleteLetter();
       } else if (key === 'enter') {
@@ -272885,6 +272904,7 @@ export default class GameScene extends Phaser.Scene {
         this.addLetter(key);
       }
     });
+    
   }
 
   private isValidLetter(letter: string): boolean {
@@ -272904,7 +272924,7 @@ export default class GameScene extends Phaser.Scene {
   private shuffleLetters() {
     // Shuffle outer letter positions
     const shuffled = this.gameLogic.shuffleOuterLetters();
-    
+
     // Update button text
     for (let i = 1; i < this.letterButtons.length; i++) {
       const letter = shuffled[i - 1];
@@ -272921,12 +272941,12 @@ export default class GameScene extends Phaser.Scene {
     }
 
     const result = this.gameLogic.validateWord(this.typedWord);
-    
+
     if (result.isValid) {
       this.showMessage(`+${result.points} points!`);
       this.scoreText.setText(`Score: ${this.gameLogic.getScore()}`);
       this.updateFoundWordsDisplay();
-      this.saveDailyProgress();
+      void this.saveDailyProgress();
     } else {
       this.showMessage(result.message || 'Invalid word');
     }
@@ -272948,12 +272968,10 @@ export default class GameScene extends Phaser.Scene {
     try {
       const response = await fetch('/api/daily-game');
       if (!response.ok) return;
-      
+
       const data = await response.json();
       if (data.gameState) {
         this.gameLogic.loadDailyGameState(data.gameState);
-        this.scoreText.setText(`Score: ${this.gameLogic.getScore()}`);
-        this.updateFoundWordsDisplay();
       }
     } catch (error) {
       console.error('Failed to load daily progress:', error);
@@ -272966,7 +272984,7 @@ export default class GameScene extends Phaser.Scene {
       await fetch('/api/daily-game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(gameState)
+        body: JSON.stringify(gameState),
       });
     } catch (error) {
       console.error('Failed to save daily progress:', error);
@@ -272979,7 +272997,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   private pauseGame() {
-    this.saveDailyProgress();
+    void this.saveDailyProgress();
     this.scene.start('MainMenu');
   }
 }

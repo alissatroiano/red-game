@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { showDirections } from '../main';
 
 export class Preloader extends Scene {
   constructor() {
@@ -25,12 +26,31 @@ export class Preloader extends Scene {
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath('assets');
 
-    this.load.image('logo', 'logo.png');
+    this.load.image('logo', 'logo-light.png');
   }
 
   create() {
     //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
     //  For example, you can define global animations here, so we can use them in other scenes.
+
+    // Create directions button
+    const container = document.getElementById('directions-container');
+    if (container) {
+      const button = document.createElement('button');
+      button.className = 'cursor-pointer';
+      button.id = 'directions';
+      
+      const img = document.createElement('img');
+      img.src = 'assets/question.png';
+      img.alt = '?';
+      img.style.width = '24px';
+      img.style.height = '24px';
+      
+      button.appendChild(img);
+      container.appendChild(button);
+      
+      button.addEventListener('click', showDirections);
+    }
 
     //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
     this.scene.start('MainMenu');

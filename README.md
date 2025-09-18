@@ -1,12 +1,26 @@
-## Devvit Phaser Starter
+# Vocable
 
-A starter to build web applications on Reddit's developer platform
+### A Daily Reddit Word Game
 
-- [Devvit](https://developers.reddit.com/): A way to build and deploy immersive games on Reddit
-- [Vite](https://vite.dev/): For compiling the webView
-- [Phaser](https://phaser.io/): 2D game engine
-- [Express](https://expressjs.com/): For backend logic
-- [Typescript](https://www.typescriptlang.org/): For type safety
+## Inspiration
+
+Vocable was inspired by The New York Times Spelling Bee, a daily word puzzle that presents players with a hexagonal grid of 7 letters arrayed in a honeycomb structure.The player scores points by using the 7 letters to form words consisting of four or more letters. However, any words proposed by the player **must** include the letter at the center of the honeycomb.
+
+The Spelling Bee points system works as follows:
+
+- You get one point for each letter in the word, except four letter words only score 1 point.
+- Scoring points leads to progressively higher praise for the player's effort, such as "Solid", "Amazing", and "Genius".
+- Each puzzle is guaranteed to have at least one pangram, a word containing at least one of each of the seven letters
+- Pangrams award 7 extra points (e.g. a seven-letter pangram scores 14 points).
+- Without a New York Times subscription, you can play the Spelling Bee for free up to the rank of "Solid" or a percentage of the total points, which is typically 15%.
+
+I have always been a fan of word games and brain teasers like these, so I find it disappointing that Spelling Bee stops accepting words once you reach the "Solid" rank (especially considering the cut-off happens whenever I feel like I'm on a roll). I understand this is a good way to get people to subscribe to - and pay for - a New York Time Games Subscription, but it's frustrating nonetheless.
+
+In fact, playing Spelling Bee while warming up (walking a mile before jogging) and running into this issue is precisely what inspired me to build Vocable for Reddit. 
+
+## What it does
+
+Vocable provides the Spelling Bee game experience for Reddit users. 
 
 ## Getting Started
 

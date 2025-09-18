@@ -36,7 +36,7 @@ export class MainMenu extends Scene {
       if (!this.userText) {
         this.userText = this.add.text(20, 20, `User: ${data.userId}`, {
           fontSize: '16px',
-          color: '#ffffff'
+          color: '#ffffff',
         });
       }
     } catch (error) {

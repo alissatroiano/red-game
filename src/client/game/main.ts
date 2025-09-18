@@ -6,7 +6,6 @@ import * as Phaser from 'phaser';
 import { AUTO, Game } from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
-
 const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
   parent: 'game-container',
@@ -27,15 +26,13 @@ const StartGame = (parent: string) => {
 export const showDirections = () => {
   const modal = document.getElementById('modal');
   modal?.classList.toggle('hidden');
-}
+};
 
 // Initialize modal event listeners
 document.addEventListener('DOMContentLoaded', () => {
-  const directionsBtn = document.getElementById('directions');
   const modal = document.getElementById('modal');
   const closeBtn = document.querySelector('.close');
 
-  directionsBtn?.addEventListener('click', showDirections);
   closeBtn?.addEventListener('click', showDirections);
   modal?.addEventListener('click', (e) => {
     if (e.target === modal) showDirections();

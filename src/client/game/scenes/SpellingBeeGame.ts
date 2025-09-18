@@ -1,4 +1,3 @@
-
 import { UserScore, DailyGameState } from '../../../shared/types/api';
 
 export interface GameState {
@@ -150,7 +149,7 @@ export class SpellingBeeGame {
     return {
       type: 'score',
       postId: postId,
-      count: this.gameState.currentScore
+      count: this.gameState.currentScore,
     };
   }
 
@@ -161,7 +160,7 @@ export class SpellingBeeGame {
       date: new Date().toISOString().split('T')[0]!,
       score: this.gameState.currentScore,
       foundWords: Array.from(this.gameState.foundWords),
-      isCompleted: false
+      isCompleted: false,
     };
   }
 
@@ -179,5 +178,3 @@ export type GameValidationResult =
   | { type: 'too_short'; message: string }
   | { type: 'not_in_dictionary'; message: string }
   | { type: 'wrong_letters'; message: string };
-
-

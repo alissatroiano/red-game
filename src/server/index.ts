@@ -1,5 +1,11 @@
 import express from 'express';
-import { InitResponse, saveScore, DailyGameState, LoadDailyGameResponse, SaveDailyGameResponse } from '../shared/types/api';
+import {
+  InitResponse,
+  saveScore,
+  DailyGameState,
+  LoadDailyGameResponse,
+  SaveDailyGameResponse,
+} from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
 
@@ -48,7 +54,7 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
 
 router.get('/api/user', async (_req, res): Promise<void> => {
   const { userId } = context;
-  res.json({ userId: userId || 'anonymous' });
+  res.json({ userId: userId || 'userId' });
 });
 
 router.post<{ postId: string }, saveScore | { status: string; message: string }, { score: number }>(
@@ -73,7 +79,7 @@ router.post<{ postId: string }, saveScore | { status: string; message: string },
     }
 
     await redis.set(`score:${postId}:${userId}`, score.toString());
-    
+
     res.json({
       type: 'score',
       postId,
@@ -93,7 +99,7 @@ router.get<{ postId: string }, LoadDailyGameResponse | { status: string; message
 
     const today = new Date().toISOString().split('T')[0];
     const gameStateStr = await redis.get(`daily:${postId}:${userId}:${today}`);
-    
+
     res.json({
       type: 'loadDaily',
       gameState: gameStateStr ? JSON.parse(gameStateStr) : null,
@@ -101,26 +107,27 @@ router.get<{ postId: string }, LoadDailyGameResponse | { status: string; message
   }
 );
 
-router.post<{ postId: string }, SaveDailyGameResponse | { status: string; message: string }, DailyGameState>(
-  '/api/daily-game',
-  async (req, res): Promise<void> => {
-    const { postId, userId } = context;
-    if (!postId || !userId) {
-      res.status(400).json({ status: 'error', message: 'postId and userId are required' });
-      return;
-    }
-
-    const gameState = req.body;
-    const today = new Date().toISOString().split('T')[0];
-    
-    await redis.set(`daily:${postId}:${userId}:${today}`, JSON.stringify(gameState));
-    
-    res.json({
-      type: 'saveDaily',
-      success: true,
-    });
+router.post<
+  { postId: string },
+  SaveDailyGameResponse | { status: string; message: string },
+  DailyGameState
+>('/api/daily-game', async (req, res): Promise<void> => {
+  const { postId, userId } = context;
+  if (!postId || !userId) {
+    res.status(400).json({ status: 'error', message: 'postId and userId are required' });
+    return;
   }
-);
+
+  const gameState = req.body;
+  const today = new Date().toISOString().split('T')[0];
+
+  await redis.set(`daily:${postId}:${userId}:${today}`, JSON.stringify(gameState));
+
+  res.json({
+    type: 'saveDaily',
+    success: true,
+  });
+});
 
 router.post('/internal/on-app-install', async (_req, res): Promise<void> => {
   try {
@@ -153,6 +160,39 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
       message: 'Failed to create post',
     });
   }
+});
+
+router.post('/internal/cron/daily-job', async (_req, res): Promise<void> => {
+  try {
+    const post = await createPost();
+    console.log(`Daily post created: ${post.id}`);
+
+    res.json({
+      status: 'success',
+      message: `Daily post created with id ${post.id}`,
+    });
+  } catch (error) {
+    console.error(`Error creating daily post: ${error}`);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to create daily post',
+    });
+  }
+});
+
+router.post('/internal/menu/show-info', async (_req, res): Promise<void> => {
+  const { postId, userId } = context;
+  
+  if (!postId || !userId) {
+    res.status(400).json({ status: 'error', message: 'Missing context' });
+    return;
+  }
+
+  const score = await redis.get(`score:${postId}:${userId}`) || '0';
+  
+  res.json({
+    message: `User: ${userId}\nScore: ${score}`,
+  });
 });
 
 // Use router middleware

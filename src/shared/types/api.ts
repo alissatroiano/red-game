@@ -25,7 +25,7 @@ export type UserScore = {
   count: number;
 };
 
-export type saveScore ={
+export type saveScore = {
   type: 'score';
   postId: string;
   count: number;
