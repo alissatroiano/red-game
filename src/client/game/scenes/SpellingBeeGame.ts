@@ -1,4 +1,6 @@
-interface GameState {
+import { UserScore, DailyGameState } from '../../../shared/types/api';
+
+export interface GameState {
   centerLetter: string;
   outerLetters: string[];
   foundWords: Set<string>;
@@ -84,12 +86,16 @@ export class SpellingBeeGame {
   }
 
   private calculatePoints(word: string): number {
-    // 4-letter words are 1 point
-    if (word.length === 4) {
-      return 1;
-    }
-    // Longer words get 1 point per letter
+    // Base points equal to word length
     let points = word.length;
+
+    // Bonus points for rare letters
+    const rareLetters = new Set(['v', 'w', 'x', 'y', 'z']);
+    for (const letter of word) {
+      if (rareLetters.has(letter)) {
+        points += 2;
+      }
+    }
 
     // Bonus for pangrams (using all 7 letters)
     const allLetters = new Set([...this.gameState.outerLetters, this.gameState.centerLetter]);
@@ -107,6 +113,60 @@ export class SpellingBeeGame {
   // Getters for game state
   public getGameState(): GameState {
     return this.gameState;
+  }
+
+  public get centerLetter(): string {
+    return this.gameState.centerLetter;
+  }
+
+  public get outerLetters(): string[] {
+    return this.gameState.outerLetters;
+  }
+
+  public getScore(): number {
+    return this.gameState.currentScore;
+  }
+
+  public getFoundWords(): string[] {
+    return Array.from(this.gameState.foundWords).sort();
+  }
+
+  public validateWord(word: string): { isValid: boolean; points?: number; message?: string } {
+    const result = this.submitWord(word);
+    if (result.type === 'success') {
+      return { isValid: true, points: result.points };
+    }
+    return { isValid: false, message: result.message };
+  }
+
+  public shuffleOuterLetters(): string[] {
+    const shuffled = [...this.gameState.outerLetters].sort(() => Math.random() - 0.5);
+    this.gameState.outerLetters = shuffled;
+    return shuffled;
+  }
+
+  public getUserScore(postId: string): UserScore {
+    return {
+      type: 'score',
+      postId: postId,
+      count: this.gameState.currentScore,
+    };
+  }
+
+  public getDailyGameState(postId: string): DailyGameState {
+    return {
+      type: 'dailyState',
+      postId,
+      date: new Date().toISOString().split('T')[0]!,
+      score: this.gameState.currentScore,
+      foundWords: Array.from(this.gameState.foundWords),
+      isCompleted: false,
+    };
+  }
+
+  public loadDailyGameState(gameState: DailyGameState): void {
+    this.gameState.currentScore = gameState.score;
+    this.gameState.foundWords = new Set(gameState.foundWords);
   }
 }
 

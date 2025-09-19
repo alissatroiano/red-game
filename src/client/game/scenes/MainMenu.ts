@@ -3,24 +3,22 @@ import { Scene, GameObjects } from 'phaser';
 export class MainMenu extends Scene {
   background: GameObjects.Image | null = null;
   logo: GameObjects.Image | null = null;
-  title: GameObjects.Text | null = null;
+  title: GameObjects.Image | null = null;
+  userInfo: GameObjects.Text | null = null;
 
   constructor() {
     super('MainMenu');
   }
 
-  /**
-   * Reset cached GameObject references every time the scene starts.
-   * The same Scene instance is reused by Phaser, so we must ensure
-   * stale (destroyed) objects are cleared out when the scene restarts.
-   */
   init(): void {
     this.background = null;
     this.logo = null;
     this.title = null;
+    this.userInfo = null;
   }
 
-  create() {
+  async create() {
+    await this.loadUserInfo();
     this.refreshLayout();
 
     // Re-calculate positions whenever the game canvas is resized (e.g. orientation change).
@@ -31,10 +29,21 @@ export class MainMenu extends Scene {
     });
   }
 
-  /**
-   * Positions and (lightly) scales all UI elements based on the current game size.
-   * Call this from create() and from any resize events.
-   */
+  private async loadUserInfo() {
+    try {
+      const response = await fetch('/api/user');
+      const data = await response.json();
+      if (!this.userInfo) {
+        this.userInfo = this.add.text(20, 20, `User: ${data.userId}`, {
+          fontSize: '16px',
+          color: '#f7e9e9ff',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load user info:', error);
+    }
+  }
+
   private refreshLayout(): void {
     const { width, height } = this.scale;
 
@@ -43,8 +52,9 @@ export class MainMenu extends Scene {
 
     // Background – stretch to fill the whole canvas
     if (!this.background) {
-      this.background = this.add.image(0, 0, 'background').setOrigin(0);
+      this.background = this.add.image(width / 2, height / 2, 'background');
     }
+    this.background!.setPosition(width / 2, height / 2);
     this.background!.setDisplaySize(width, height);
 
     // Logo – keep aspect but scale down for very small screens
@@ -55,21 +65,16 @@ export class MainMenu extends Scene {
     }
     this.logo!.setPosition(width / 2, height * 0.38).setScale(scaleFactor);
 
-    // Title text – create once, then scale on resize
-    const baseFontSize = 38;
+    // Play button image – create once, then scale on resize
     if (!this.title) {
-      this.title = this.add
-        .text(0, 0, 'Play', {
-          fontFamily: 'Arial Black',
-          fontSize: `${baseFontSize}px`,
-          color: '#ffffff',
-          stroke: '#6666ff',
-          strokeThickness: 3,
-          align: 'center',
-        })
-        .setOrigin(0.5);
+      this.title = this.add.image(0, 0, 'play').setInteractive();
     }
-    this.title!.setPosition(width / 2, height * 0.6);
-    this.title!.setScale(scaleFactor);
+    this.title!.setPosition(width / 2, height * 0.75);
+    this.title!.setScale(scaleFactor * 0.5);
+
+    // User text positioning
+    if (this.userInfo) {
+      this.userInfo.setPosition(20, 20);
+    }
   }
 }

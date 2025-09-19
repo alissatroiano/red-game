@@ -1,8 +1,7 @@
 body {
   margin: 0;
   padding: 0;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #0f0f0f;
+  background: #0f0f0f;
 }
 
 #app {
@@ -14,4 +13,129 @@ body {
 #game-container {
   width: 100%;
   height: 100%;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+div.how-to-play {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background: transparent;
+}
+
+button {
+  border-radius: 50%;
+}
+
+button#directions {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #fee214ad;
+  font-size: 30px;
+  border: none;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.modal {
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #0e0024e2;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 350px;
+  position: relative;
+}
+
+.modal-header {
+  border-bottom: 1px solid #444;
+  padding-top: 20px;
+}
+
+.modal-header h2 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: 200;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #80dbfabb;
+  text-align: center;
+  margin-top: 20px;
+}
+
+p.modal-text {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.25;
+  color: #ededed;
+  margin: 20px 15px;
+  text-align: center;
+  padding-bottom: 8px;
+}
+
+p.note {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #ff98ec;
+  font-style: italic;
+  text-align: center;
+}
+
+h3.rules {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 1.253rem;
+  color: #fffb03b0;
+  text-align: start;
+  margin: 10px auto;
+}
+
+ul.unordered-list {
+  list-style-type: disc;
+  padding-left: 30px;
+  margin: 0px auto;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #ddd;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 200;
+}
+
+.close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.close:hover {
+  color: white;
 }
