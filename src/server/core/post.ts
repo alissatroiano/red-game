@@ -11,12 +11,19 @@ export const createPost = async () => {
     throw new Error('subredditName is required');
   }
 
+  const formattedDate = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
   return await reddit.submitCustomPost({
     splash: {
       appDisplayName: 'Vocable',
     },
     subredditName: subredditName,
-    title: 'Vocable',
+    title: `Vocable - ${formattedDate}`,
   });
 };
 
