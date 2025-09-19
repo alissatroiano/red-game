@@ -146,21 +146,6 @@ router.post('/internal/on-app-install', async (_req, res): Promise<void> => {
   }
 });
 
-router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
-  try {
-    const post = await createPost();
-
-    res.json({
-      navigateTo: `https://reddit.com/r/${context.subredditName}/comments/${post.id}`,
-    });
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    res.status(400).json({
-      status: 'error',
-      message: 'Failed to create post',
-    });
-  }
-});
 
 router.post('/internal/cron/daily-job', async (_req, res): Promise<void> => {
   try {

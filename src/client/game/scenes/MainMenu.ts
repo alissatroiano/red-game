@@ -3,8 +3,8 @@ import { Scene, GameObjects } from 'phaser';
 export class MainMenu extends Scene {
   background: GameObjects.Image | null = null;
   logo: GameObjects.Image | null = null;
-  title: GameObjects.Text | null = null;
-  userText: GameObjects.Text | null = null;
+  title: GameObjects.Image | null = null;
+  userInfo: GameObjects.Text | null = null;
 
   constructor() {
     super('MainMenu');
@@ -14,7 +14,7 @@ export class MainMenu extends Scene {
     this.background = null;
     this.logo = null;
     this.title = null;
-    this.userText = null;
+    this.userInfo = null;
   }
 
   async create() {
@@ -33,10 +33,10 @@ export class MainMenu extends Scene {
     try {
       const response = await fetch('/api/user');
       const data = await response.json();
-      if (!this.userText) {
-        this.userText = this.add.text(20, 20, `User: ${data.userId}`, {
+      if (!this.userInfo) {
+        this.userInfo = this.add.text(20, 20, `User: ${data.userId}`, {
           fontSize: '16px',
-          color: '#ffffff',
+          color: '#f7e9e9ff',
         });
       }
     } catch (error) {
@@ -52,8 +52,9 @@ export class MainMenu extends Scene {
 
     // Background – stretch to fill the whole canvas
     if (!this.background) {
-      this.background = this.add.image(0, 0, 'background').setOrigin(0);
+      this.background = this.add.image(width / 2, height / 2, 'background');
     }
+    this.background!.setPosition(width / 2, height / 2);
     this.background!.setDisplaySize(width, height);
 
     // Logo – keep aspect but scale down for very small screens
@@ -64,25 +65,16 @@ export class MainMenu extends Scene {
     }
     this.logo!.setPosition(width / 2, height * 0.38).setScale(scaleFactor);
 
-    // Title text – create once, then scale on resize
-    const baseFontSize = 38;
+    // Play button image – create once, then scale on resize
     if (!this.title) {
-      this.title = this.add
-        .text(0, 0, 'PLAY', {
-          fontFamily: 'Arial Black',
-          fontSize: `${baseFontSize}px`,
-          color: '#ffffff',
-          stroke: '#6666ff',
-          align: 'center',
-        })
-        .setOrigin(0.25);
+      this.title = this.add.image(0, 0, 'play').setInteractive();
     }
     this.title!.setPosition(width / 2, height * 0.75);
-    this.title!.setScale(scaleFactor);
+    this.title!.setScale(scaleFactor * 0.5);
 
     // User text positioning
-    if (this.userText) {
-      this.userText.setPosition(20, 20);
+    if (this.userInfo) {
+      this.userInfo.setPosition(20, 20);
     }
   }
 }

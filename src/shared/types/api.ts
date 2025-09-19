@@ -4,6 +4,11 @@ export type InitResponse = {
   count: number;
 };
 
+export type GetUserResponse = {
+  type: 'user';
+  userId: string;
+};
+
 export type GetDictionaryResponse = {
   type: 'dictionary';
   words: string[];

@@ -42,8 +42,7 @@
     "redis": true
   },
   "triggers": {
-    "onAppInstall": "/internal/on-app-install",
-    "onPostCreate": "/internal/post-create"
+    "onAppInstall": "/internal/on-app-install"
   },
   "scheduler": {
     "tasks": {

@@ -4,7 +4,7 @@
 
 ## Inspiration
 
-Vocable was inspired by The New York Times Spelling Bee, a daily word puzzle that presents players with a hexagonal grid of 7 letters arrayed in a honeycomb structure.The player scores points by using the 7 letters to form words consisting of four or more letters. However, any words proposed by the player **must** include the letter at the center of the honeycomb.
+Vocable was inspired by [The New York Times Spelling Bee](https://www.nytimes.com/puzzles/spelling-bee), a daily word puzzle that presents players with a hexagonal grid of 7 letters arrayed in a honeycomb structure. The player scores points by using the 7 letters to form words consisting of four or more letters. However, any words proposed by the player **must** include the letter at the center of the honeycomb.
 
 The Spelling Bee points system works as follows:
 
@@ -20,29 +20,31 @@ In fact, playing Spelling Bee while warming up (walking a mile before jogging) a
 
 ## What it does
 
-Vocable provides the Spelling Bee game experience for Reddit users. 
+Vocable provides a similar experience to Spelling Bee, but it's tailored for Reddit users.
+The game's programming makes it so a new puzzle will post at midnight every day using UTC. That way, the new puzzle is posted  based on each user's timezone.
 
-## Getting Started
+## How I built it
 
-> Make sure you have Node 22 downloaded on your machine before running!
+1. Used Devvit Web's Phaser.js template to get acquainted with devvit's client/server/shared environment
+2. Started playing around with 'Spelling Bee' concept, using Amazon Q to provide occasional refactoring and bug fixes
+3. Created my own scoring system and left out the Pangram, as to not completely copy Spelling Bee (my JavaScript scoring system is more similar to Scrabble, placing a higher value on less common letters, like Z, Y, V, X)
+4. Used Redis & custom JavaScript to make each user's game persist throughout the day. That way, if the user needs a break or to step away, their score and the words they've already guessed will still be there when they return (even if they close Reddit entirely). 
+5. Made it so the user's game data for each stay is tied to a postID, but the data resets at midnight UTC every night - so, the game will always work - even without a new automated post.
 
-1. Run `npm create devvit@latest --template=phaser`
-2. Go through the installation wizard. You will need to create a Reddit account and connect it to Reddit developers
-3. Copy the command on the success page into your terminal
+## Challenges I Ran into
 
-## Commands
+### Persisting Data
 
-- `npm run dev`: Starts a development server where you can develop your application live on Reddit.
-- `npm run build`: Builds your client and server projects
-- `npm run deploy`: Uploads a new version of your app
-- `npm run launch`: Publishes your app for review
-- `npm run login`: Logs your CLI into Reddit
-- `npm run check`: Type checks, lints, and prettifies your app
+I had a hard time getting the user's score to persist at first, and then I figured out that server/index.ts is connected to shared/types/api.ts. Once I understood the backend configuration I was able to make a better game.
 
-## Cursor Integration
+## Accomplishments
 
-This template comes with a pre-configured cursor environment. To get started, [download cursor](https://www.cursor.com/downloads) and enable the `devvit-mcp` when prompted.
+## What I learned
+
+## What's next for Vocable
 
 ## Credits
 
-Thanks to the Phaser team for [providing a great template](https://github.com/phaserjs/template-vite-ts)!
+- [The New York Times Spelling Bee](https://www.nytimes.com/puzzles/spelling-bee)
+- [Amazon Q](https://aws.amazon.com/q/)
+- 
