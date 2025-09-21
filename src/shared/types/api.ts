@@ -79,3 +79,9 @@ export type SubmitGuessResponse = Response<{
   gameData: GameData;
   correctAnswer?: string;
 }>;
+
+export type GetLettersResponse = {
+  centerLetter: string;
+  outerLetters: string[];
+  date: string;
+};

@@ -13,14 +13,18 @@ import { createPost } from './core/post';
 function generateDailyLetters(date: string) {
   const alphabet = 'abcdefghijklmnopqrstuvwxyz';
   const vowels = 'aeiou';
-  const seed = parseInt(date.replace(/-/g, ''));
   
-  function seededRandom(seed: number) {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
+  // Create a more robust seed from date
+  const [year, month, day] = date.split('-').map(Number);
+  let seed = year * 10000 + month * 100 + day;
+  
+  // Linear congruential generator for better randomness
+  function seededRandom() {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
   }
 
-  const centerIndex = Math.floor(seededRandom(seed) * alphabet.length);
+  const centerIndex = Math.floor(seededRandom() * alphabet.length);
   const centerLetter = alphabet[centerIndex] || 'a';
 
   const outerLetters: string[] = [];
@@ -37,10 +41,10 @@ function generateDailyLetters(date: string) {
     
     // Force vowels if we need them
     if (vowelsAdded < vowelsNeeded && outerLetters.length >= 6 - vowelsNeeded) {
-      const vowelIdx = Math.floor(seededRandom(seed + attempts) * vowels.length);
+      const vowelIdx = Math.floor(seededRandom() * vowels.length);
       letter = vowels[vowelIdx] || 'a';
     } else {
-      const idx = Math.floor(seededRandom(seed + attempts) * alphabet.length);
+      const idx = Math.floor(seededRandom() * alphabet.length);
       letter = alphabet[idx] || 'b';
     }
     
@@ -144,8 +148,8 @@ router.get<{ postId: string }, LoadDailyGameResponse | { status: string; message
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    const gameStateStr = await redis.get(`daily:${postId}:${userId}:${today}`);
+    // Use postId for game state key to allow playing old posts
+    const gameStateStr = await redis.get(`daily:${postId}:${userId}`);
 
     res.json({
       type: 'loadDaily',
@@ -166,14 +170,27 @@ router.post<
   }
 
   const gameState = req.body;
-  const today = new Date().toISOString().split('T')[0];
-
-  await redis.set(`daily:${postId}:${userId}:${today}`, JSON.stringify(gameState));
+  
+  // Use postId for game state key to allow playing old posts
+  await redis.set(`daily:${postId}:${userId}`, JSON.stringify(gameState));
 
   res.json({
     type: 'saveDaily',
     success: true,
   });
+});
+
+router.get('/api/get-dictionary', async (_req, res): Promise<void> => {
+  try {
+    const response = await fetch('https://raw.githubusercontent.com/sindresorhus/word-list/refs/heads/main/words.txt');
+    const text = await response.text();
+    const words = text.split('\n').filter(word => word.length >= 4);
+    
+    res.json({ type: 'dictionary', words });
+  } catch (error) {
+    const fallbackWords = ['able', 'about', 'above', 'after', 'again', 'agent', 'agree', 'ahead', 'alive', 'allow', 'alone', 'along', 'among', 'angry', 'apart', 'apple', 'apply', 'argue', 'arise', 'array', 'aside', 'avoid', 'awake', 'award', 'aware', 'basic', 'beach', 'began', 'begin', 'being', 'below', 'black', 'block', 'blood', 'board', 'bound', 'brain', 'brand', 'brave', 'bread', 'break', 'breed', 'brief', 'bring', 'broad', 'broke', 'brown', 'build', 'built', 'carry', 'catch', 'cause', 'chain', 'chair', 'charm', 'chart', 'chase', 'cheap', 'check', 'chest', 'chief', 'child', 'china', 'chose', 'civil', 'claim', 'class', 'clean', 'clear', 'click', 'climb', 'clock', 'close', 'cloud', 'coach', 'coast', 'could', 'count', 'court', 'cover', 'craft', 'crash', 'crazy', 'cream', 'crime', 'cross', 'crowd', 'crown', 'curve', 'cycle', 'daily', 'dance', 'death', 'delay', 'depth', 'doing', 'doubt', 'dozen', 'draft', 'drama', 'dream', 'dress', 'drill', 'drink', 'drive', 'drove', 'dying', 'eager', 'early', 'earth', 'eight', 'elite', 'empty', 'enemy', 'enjoy', 'enter', 'entry', 'equal', 'error', 'event', 'every', 'exact', 'exist', 'extra', 'faith', 'false', 'fault', 'field', 'fifth', 'fifty', 'fight', 'final', 'first', 'fixed', 'flash', 'fleet', 'floor', 'fluid', 'focus', 'force', 'forth', 'forty', 'forum', 'found', 'frame', 'frank', 'fraud', 'fresh', 'front', 'fruit', 'fully', 'funny', 'giant', 'given', 'glass', 'globe', 'going', 'grace', 'grade', 'grand', 'grant', 'grass', 'grave', 'great', 'green', 'gross', 'group', 'grown', 'guard', 'guess', 'guest', 'guide', 'happy', 'heart', 'heavy', 'hence', 'horse', 'hotel', 'house', 'human'];
+    res.json({ type: 'dictionary', words: fallbackWords });
+  }
 });
 
 router.get('/api/get-letters', async (_req, res): Promise<void> => {
@@ -185,16 +202,16 @@ router.get('/api/get-letters', async (_req, res): Promise<void> => {
   }
 
   try {
+    // First try to get letters specific to this post
     const lettersStr = await redis.get(`post_letters_${postId}`);
     
     if (lettersStr) {
       const letters = JSON.parse(lettersStr);
       res.json(letters);
     } else {
-      // Fallback: generate letters based on current date if not stored
+      // Fallback: generate letters based on current date
       const today = new Date().toISOString().split('T')[0] || '2025-01-01';
       const letters = generateDailyLetters(today);
-      await redis.set(`post_letters_${postId}`, JSON.stringify(letters));
       res.json(letters);
     }
   } catch (error) {
@@ -211,6 +228,7 @@ router.post('/internal/on-app-install', async (_req, res): Promise<void> => {
     const today = new Date().toISOString().split('T')[0] || '2025-01-01';
     const letters = generateDailyLetters(today);
     await redis.set(`post_letters_${post.id}`, JSON.stringify(letters));
+    await redis.set(`daily_letters_${today}`, JSON.stringify({ ...letters, postId: post.id }));
 
     res.json({
       status: 'success',
@@ -233,6 +251,7 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
     const today = new Date().toISOString().split('T')[0] || '2025-01-01';
     const letters = generateDailyLetters(today);
     await redis.set(`post_letters_${post.id}`, JSON.stringify(letters));
+    await redis.set(`daily_letters_${today}`, JSON.stringify({ ...letters, postId: post.id }));
 
     res.json({
       navigateTo: `https://reddit.com/r/${context.subredditName}/comments/${post.id}`,
@@ -253,16 +272,19 @@ router.post('/internal/cron/daily-job', async (_req, res): Promise<void> => {
   try {
     const post = await createPost();
     
-    // Generate and store letters for this post
-    const today = new Date().toISOString().split('T')[0] || '2025-01-01';
-    const letters = generateDailyLetters(today);
-    await redis.set(`post_letters_${post.id}`, JSON.stringify(letters));
+    // Generate letters for this specific post's date
+    const postDate = new Date().toISOString().split('T')[0] || '2025-01-01';
+    const letters = generateDailyLetters(postDate);
     
-    console.log(`Daily post created in r/${subreddit}: ${post.id} with letters:`, letters);
+    // Store letters with both post ID and date for persistence
+    await redis.set(`post_letters_${post.id}`, JSON.stringify(letters));
+    await redis.set(`daily_letters_${postDate}`, JSON.stringify({ ...letters, postId: post.id }));
+    
+    console.log(`Daily post created in r/${subreddit}: ${post.id} for ${postDate} with letters:`, letters);
 
     res.json({
       status: 'success',
-      message: `Daily post created in r/${subreddit} with id ${post.id}`,
+      message: `Daily post created in r/${subreddit} with id ${post.id} for ${postDate}`,
     });
   } catch (error) {
     console.error(`Error creating daily post in r/${subreddit}:`, error);
@@ -294,6 +316,24 @@ router.get('/api/test-daily/:date', async (req, res): Promise<void> => {
   const { date } = req.params;
   const letters = generateDailyLetters(date);
   res.json({ date, letters });
+});
+
+// Test endpoint to verify post-specific letters
+router.get('/api/test-post/:postId', async (req, res): Promise<void> => {
+  const { postId } = req.params;
+  
+  try {
+    const lettersStr = await redis.get(`post_letters_${postId}`);
+    
+    if (lettersStr) {
+      const letters = JSON.parse(lettersStr);
+      res.json({ postId, letters, found: true });
+    } else {
+      res.json({ postId, letters: null, found: false, message: 'No letters found for this post' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve letters' });
+  }
 });
 
 // Use router middleware
